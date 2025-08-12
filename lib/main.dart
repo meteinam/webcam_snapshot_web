@@ -37,7 +37,7 @@ class _CameraAutoCapturePageState extends State<CameraAutoCapturePage> {
       _cameras = await availableCameras();
       if (_cameras.isEmpty) {
         setState(() {
-          _errorMessage = "Kamera bulunamadı.";
+          _errorMessage = "Kamera bulunamadı. Lütfen bir kamera bağlayın.";
         });
         return;
       }
@@ -49,8 +49,12 @@ class _CameraAutoCapturePageState extends State<CameraAutoCapturePage> {
       });
       _timer = Timer.periodic(const Duration(seconds: 5), (_) => _captureFrame());
     } catch (e) {
+      String message = e.toString();
+      if (message.contains('notReadable')) {
+        message = "Kamera erişilemiyor. Lütfen tarayıcıdan kamera izni verin, başka bir uygulamanın kamerayı kullanmadığından emin olun ve uygulamayı HTTPS üzerinden çalıştırın.";
+      }
       setState(() {
-        _errorMessage = "Kamera başlatılamadı: $e";
+        _errorMessage = "Kamera başlatılamadı: $message";
       });
     }
   }
