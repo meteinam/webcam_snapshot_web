@@ -106,6 +106,7 @@ class _CameraAutoCapturePageState extends State<CameraAutoCapturePage> {
     _controller?.dispose();
     setState(() {
       _isCapturing = false;
+      _controller = null; 
     });
   }
 
