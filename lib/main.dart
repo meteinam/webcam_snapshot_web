@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'dart:io' show File;
 import 'package:flutter/foundation.dart';
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -25,10 +28,12 @@ class _CameraAutoCapturePageState extends State<CameraAutoCapturePage> {
   bool _isCapturing = false;
   String? _errorMessage;
   List<CameraDescription> _cameras = [];
+  List<String> _capturedBase64Images = [];
 
   @override
   void initState() {
     super.initState();
+    _loadBase64ListFromLocal();
     _initCamera();
   }
 
@@ -66,10 +71,34 @@ class _CameraAutoCapturePageState extends State<CameraAutoCapturePage> {
       setState(() {
         _capturedImages.add(image);
       });
+      await _convertAndStoreBase64(image);
       print("Fotoğraf çekildi!");
     } catch (e) {
       print("Fotoğraf çekilemedi: $e");
     }
+  }
+
+  Future<void> _convertAndStoreBase64(XFile image) async {
+    final bytes = await image.readAsBytes();
+    final base64Str = base64Encode(bytes);
+    print("Base64 String: $base64Str");
+    setState(() {
+      _capturedBase64Images.add(base64Str);
+    });
+    await _saveBase64ListToLocal();
+  }
+
+  Future<void> _saveBase64ListToLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('captured_images_base64', _capturedBase64Images);
+  }
+
+  Future<void> _loadBase64ListFromLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList('captured_images_base64') ?? [];
+    setState(() {
+      _capturedBase64Images = list;
+    });
   }
 
   void _stopCapturing() {
